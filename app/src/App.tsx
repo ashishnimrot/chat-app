@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import './App.css'
 import axios from 'axios'
 
-const App: React.FC = () => {
+function App() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
