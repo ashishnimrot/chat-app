@@ -18,6 +18,10 @@ app.get('/api/v1/test', (req: Request, res: Response) => {
   res.json({ message: 'Backend server is running with TypeScript!' });
 });
 
+app.get('/health', (_req, res) => {
+  res.status(200).send('OK');
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
