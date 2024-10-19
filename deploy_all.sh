@@ -40,12 +40,12 @@ fi
 
 # Step 4: Docker login (optional)
 print "Checking if Docker is logged in..."
-if docker info | grep -q "Username"; then
-  print "Already logged into Docker. Skipping step 4."
-else
-  print "Logging into Docker..."
-  docker login
-fi
+# if docker info | grep -q "Username"; then
+#   print "Already logged into Docker. Skipping step 4."
+# else
+#   print "Logging into Docker..."
+#   docker login
+# fi
 
 # Step 5: Build backend Docker image (skipping if no changes in ./server)
 print "Checking for changes in backend code..."

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend
@@ -17,6 +17,7 @@ spec:
       containers:
         - name: frontend
           image: ashishnimrot/chat-app-frontend-image:latest # Replace with your image
+          imagePullPolicy: Always          
           ports:
             - containerPort: 80
           env:
