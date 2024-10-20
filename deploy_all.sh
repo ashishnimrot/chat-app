@@ -48,42 +48,25 @@ print "Checking if Docker is logged in..."
 # fi
 
 # Step 5: Build backend Docker image (skipping if no changes in ./server)
-print "Checking for changes in backend code..."
-if git diff --quiet ./server && git diff --cached --quiet ./server; then
-  print "No changes in backend code. Skipping step 5."
-else
-  print "Building backend Docker image..."
-  docker build -t ashishnimrot/chat-app-backend-image:latest ./server
-fi
+print "Building backend Docker image..."
+docker build -t ashishnimrot/chat-app-backend-image:latest ./server
 
 # Step 6: Push backend Docker image (skipping if no changes in ./server)
-if git diff --quiet ./server && git diff --cached --quiet ./server; then
-  print "No changes in backend code. Skipping step 6."
-else
-  print "Pushing backend Docker image to Docker Hub..."
-  docker push ashishnimrot/chat-app-backend-image:latest
-fi
+print "Pushing backend Docker image to Docker Hub..."
+docker push ashishnimrot/chat-app-backend-image:latest
 
 # Step 7: Deploy the backend using backend-deployment.yaml
 print "Applying backend deployment..."
 kubectl apply -f backend-deployment.yaml
 
 # Step 8: Build frontend Docker image (skipping if no changes in ./app)
-print "Checking for changes in frontend code..."
-if git diff --quiet ./app && git diff --cached --quiet ./app; then
-  print "No changes in frontend code. Skipping step 8."
-else
-  print "Building frontend Docker image..."
-  docker build -t ashishnimrot/chat-app-frontend-image:latest ./app
-fi
+
+print "Building frontend Docker image..."
+docker build -t ashishnimrot/chat-app-frontend-image:latest ./app
 
 # Step 9: Push frontend Docker image (skipping if no changes in ./app)
-if git diff --quiet ./app && git diff --cached --quiet ./app; then
-  print "No changes in frontend code. Skipping step 9."
-else
-  print "Pushing frontend Docker image to Docker Hub..."
-  docker push ashishnimrot/chat-app-frontend-image:latest
-fi
+print "Pushing frontend Docker image to Docker Hub..."
+docker push ashishnimrot/chat-app-frontend-image:latest
 
 # Step 10: Deploy the frontend using frontend-deployment.yaml
 print "Applying frontend deployment..."

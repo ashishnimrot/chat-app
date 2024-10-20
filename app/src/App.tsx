@@ -1,12 +1,14 @@
-// App.tsx
 import { useEffect, useState, useRef } from 'react';
 import './App.css';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
 function App() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
-  const [chatMessages, setChatMessages] = useState<string[]>([]);
+  const [chatMessages, setChatMessages] = useState<{ username: string; message: string }[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
@@ -29,12 +31,6 @@ function App() {
         console.error('Error fetching API:', error);
       });
 
-    // socketRef.current = io(apiBaseUrl, {
-    //   path: '/socket.io', // Ensure this matches your server configuration
-    //   transports: ['websocket'], // Enforce WebSocket transport only
-    //   withCredentials: true,
-    // });
-
     socketRef.current = io(`${apiBaseUrl}`, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
@@ -53,8 +49,8 @@ function App() {
     });
 
     // Listen for messages from the server
-    socketRef.current.on('receiveMessage', (msg: string) => {
-      setChatMessages((prevMessages) => [...prevMessages, msg]);
+    socketRef.current.on('receiveMessage', ({ username, message }) => {
+      setChatMessages((prevMessages) => [...prevMessages, { username, message }]);
     });
 
     // Handle connection errors
@@ -70,10 +66,16 @@ function App() {
     };
   }, []);
 
+  const handleSetUsername = () => {
+    if (firstName.trim() && lastName.trim()) {
+      setUsername(`${firstName} ${lastName}`);
+    }
+  };
+
   const sendMessage = () => {
-    if (inputMessage.trim() === '') return;
+    if (inputMessage.trim() === '' || !username) return;
     if (socketRef.current && isConnected) {
-      socketRef.current.emit('sendMessage', inputMessage);
+      socketRef.current.emit('sendMessage', { username, message: inputMessage });
     } else {
       console.error('Socket is not connected');
     }
@@ -85,28 +87,46 @@ function App() {
       <h1>Environment: {import.meta.env.MODE}</h1>
       <p>Message from API: {message}</p>
       <p>Socket.IO Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-      <div>
-        <h2>Chat Messages:</h2>
-        <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-          {chatMessages.length > 0 ? (
-            chatMessages.map((msg, index) => (
-              <p key={index}>{msg}</p>
-            ))
-          ) : (
-            <p>No messages yet.</p>
-          )}
+      {!username ? (
+        <div>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="First Name"
+          />
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Last Name"
+          />
+          <button onClick={handleSetUsername}>Set Username</button>
         </div>
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyPress={(e) => (e.key === 'Enter' ? sendMessage() : null)}
-          placeholder="Type your message..."
-        />
-        <button onClick={sendMessage} disabled={!isConnected}>
-          Send
-        </button>
-      </div>
+      ) : (
+        <div>
+          <h2>Chat Messages:</h2>
+          <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
+            {chatMessages.length > 0 ? (
+              chatMessages.map((msg, index) => (
+                <p key={index}><strong>{msg.username}:</strong> {msg.message}</p>
+              ))
+            ) : (
+              <p>No messages yet.</p>
+            )}
+          </div>
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={(e) => (e.key === 'Enter' ? sendMessage() : null)}
+            placeholder="Type your message..."
+          />
+          <button onClick={sendMessage} disabled={!isConnected}>
+            Send
+          </button>
+        </div>
+      )}
     </div>
   );
 }

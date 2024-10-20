@@ -1,4 +1,3 @@
-// index.ts
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -21,15 +20,37 @@ app.use(cors({
 app.use(express.json());
 
 // Express routes
-app.get('/', (req: Request, res: Response) => {
-  res.send('Backend server is running with TypeScript!');
+app.get('/', (_req: Request, res: Response) => {
+  new Promise((resolve) => {
+    resolve(res.send('Backend server is running with TypeScript!'));
+  })
 });
 
-app.get('/api/v1/test', (req, res) => {
+app.get('/api/v1/test1', async (req, res) => {
   const hostname = os.hostname();
   console.log(`Request handled by pod: ${hostname}`);
   res.json({ message: `Hello from pod ${hostname}` });
 });
+
+app.get('/api/v1/test', async (req, res) => {
+  try {
+    const hostname = await getHostName();
+    res.json({ message: `Hello from pod ${hostname}` });
+  } catch (error) {
+    res.status(500).send('An error occurred');
+  }
+});
+
+function getHostName() {
+  return new Promise((resolve, reject) => {
+    try {
+      const hostname = os.hostname();
+      resolve(hostname);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 
 app.get('/health', (_req, res) => {
   res.status(200).send('OK, I am Healthy!');
@@ -49,7 +70,6 @@ const io = new SocketIOServer(server, {
 });
 
 const chatNamespace = io.of('/');
-
 
 // Set up Redis adapter
 const redisUrl = process.env.REDIS_URL || 'redis://redis-service:6379';
@@ -76,10 +96,10 @@ const subClient = pubClient.duplicate();
 chatNamespace.on('connection', (socket) => {
   console.log('User connected to /chat namespace:', socket.id);
 
-  socket.on('sendMessage', (message) => {
-    console.log(`Received message from ${socket.id} in /chat namespace: ${message}`);
+  socket.on('sendMessage', ({ username, message }) => {
+    console.log(`Received message from ${username} (${socket.id}) in /chat namespace: ${message}`);
     // Broadcast the message to all clients in the '/chat' namespace
-    chatNamespace.emit('receiveMessage', message);
+    chatNamespace.emit('receiveMessage', { username, message });
   });
 
   socket.on('disconnect', () => {
